@@ -5,21 +5,23 @@ import {
   NativeGeocoderResult,
   NativeGeocoderOptions,
 } from '@ionic-native/native-geocoder/ngx';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
 })
-
 export class HomePage {
-  latitude: any = 0; //latitude
-  longitude: any = 0; //longitude
+  latitude: any = 0; // latitude
+  longitude: any = 0; // longitude
   address: string;
+  nombre: string;
 
   constructor(
     private geolocation: Geolocation,
-    private nativeGeocoder: NativeGeocoder
+    private nativeGeocoder: NativeGeocoder,
+    private firestore: AngularFirestore
   ) {}
 
   // geolocation options
@@ -38,6 +40,7 @@ export class HomePage {
         this.latitude = resp.coords.latitude;
         this.longitude = resp.coords.longitude;
         this.getAddress(this.latitude, this.longitude);
+        this.sendCoordinatesToFirebase(this.latitude, this.longitude);
       })
       .catch((error) => {
         console.log('Error getting location', error);
@@ -74,5 +77,22 @@ export class HomePage {
       if (obj[val].length) data += obj[val] + ', ';
     }
     return address.slice(0, -2);
+  }
+
+  // send coordinates to Firebase
+  sendCoordinatesToFirebase(lat: number, long: number) {
+    const coordinates = {
+      latitude: lat,
+      longitude: long,
+      timestamp: new Date(),
+      nombre:"Danny Yanacallo",
+    };
+    this.firestore.collection('Localizacion').add(coordinates)
+      .then(() => {
+        console.log('Coordenadas enviadas a Firebase');
+      })
+      .catch((error) => {
+        console.error('Error al enviar coordenadas a Firebase', error);
+      });
   }
 }
